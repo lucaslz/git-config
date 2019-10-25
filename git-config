@@ -1,0 +1,679 @@
+[alias]
+
+  disp = !sh -c 'git push origin $1' -              #disp => disponibilizar um branch qualqer
+
+	#comandos para deletar um branch remoto ou nooo
+	dbranch = !sh -c 'git push --delete origin $1 && git branch -d $1' - #dbranch => deletar branch
+	dbranch-remoto = !sh -c 'git push --delete origin $1' - #dbranch-remoto => deletar branch remoto
+
+	#aliases para logs visualizar logs
+	lon = log --name-only #lon => visualizar log com o caminho dos arquivos
+	lons = log --name-status #lons => visualizar log com o caminho e status dos arquivos
+	lg = log --all --graph --decorate --oneline --abbrev-commit # visualizar log graficamente
+	hist = log --pretty=format:\"%h %ad | %s%d [%an]\" --graph --date=short # visualizar log graficamente
+	lobr = !sh -c 'git log  --name-only --graph --abbrev-commit --decorate  --first-parent' - # visualizar log
+
+	#aliases para trabalhar com commits
+	cm = commit -m
+	ac = !git add -A && git commit
+	acm = !git add -A && git commit -m
+
+	#alisases para manipulacao de arquivos no stash
+	stl = stash list
+	stp = stash pop
+	std = stash drop
+	sta = stash
+	stm = stash --save
+
+	#aliases para tratar repositorio e buscar informacoes
+	ck = checkout
+	ckm = checkout master
+	ckd = checkout dev
+	tags = tag -l
+
+	#aliases para visualizacao de status
+	s = status #visualizr status do repositorio
+
+	#aliases para atualizacao e publicacao de repositorios
+	atm = !git ckm && git pull origin master
+	pm = !git ckm && git pull origin master && git push origin master
+	psom = push origin master
+
+	#aliases para limpar diretorios de branchs
+	limpar = !git checkout . && git clean -df
+
+	#aliases para variadas informacoes
+	branches = branch -a
+	remotes = remote -vv
+	bnome = !git branch | grep \\* | cut -d ' ' -f2
+
+	#####################################################################################
+	# Cria uma nova tag
+	# Voce tera que passar apenas o nome da tag e uma mensagem
+	# Ex.: git ctag <nome_tag> <mensagem>
+	#####################################################################################
+	ctag = "!f() { \
+		if [ $1 ]; then \
+			echo "Digite o nome da tag."; \
+			exit; \
+		fi; \
+		if [ $1 ]; then \
+			echo "Digite uma mensagem para a tag."; \
+			exit; \
+		fi; \
+		git tag -a $1 -m $2 \
+	}; f"
+
+	#####################################################################################
+	# Remove uma tag
+	# Ex.: git rtag <nome_tag>
+	#####################################################################################
+	rtag = "!f() { \
+		if [ $1 ]; then \
+			echo "Digite o nome da tag."; \
+			exit; \
+		fi; \
+		git tag -delete $1 \
+	}; f"
+
+	#####################################################################################
+	# Remove uma tag remota
+	# Ex.: git rtag <nome_tag>
+	#####################################################################################
+	rtagr = "!f() { \
+		if [ $1 ]; then \
+			echo "Digite o nome da tag."; \
+			exit; \
+		fi; \
+		git push origin --delete $1 \
+	}; f"
+
+	#####################################################################################
+	# Legenda para deletar um branch
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git deletar-branch-local <NOME_DO_BRANCH>
+	#####################################################################################
+	deletar-branch-local = "!f() { \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			fi; \
+		else \
+			echo 'Especifique o parametro do tipo de branch'; \
+			exit; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout develop; \
+		git branch -D $NOME_BRANCH_LOCAL; \
+	}; f"
+
+	#####################################################################################
+	# Atualiza o branch develop baseado no branch master
+	# FORMA DE USO => git atualizar-develop
+	#####################################################################################
+	atualizar-develop = "!f() { \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+	}; f"
+
+	#####################################################################################
+	####################### COMANDOS PARA ATUALIZACAO DE BRANCHS ########################
+	# Atualiza um branch especifico passando sÃ³ o nome e especificando seu tipo(prefixo)
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git atualizar-branch -c <NOME_DO_BRANCH>
+	#####################################################################################
+	atualizar-branch = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do branch'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		git rebase develop; \
+	}; f"
+
+	#####################################################################################
+	####################### COMANDO PARA ATUALIZACAO DE BRANCHS ########################
+	# Atualiza o branch corrente, o branch que voce esta
+	#####################################################################################
+	atualizar = "!f() { \
+		NOME_DO_BRANCH=`git bnome`; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_DO_BRANCH) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+		git checkout $NOME_DO_BRANCH; \
+		git rebase develop; \
+	}; f"
+
+	#####################################################################################
+	# Atualiza um branch especifico passando sÃ³ o nome e especificando seu tipo(prefixo)
+	# Essa opcao utiliza apenas o merge para mesclar as atualizacoes antes de enviar
+	# modificacoes para o servidor
+	#
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git atualizar-branch-merge -c <NOME_DO_BRANCH>
+	#####################################################################################
+	atualizar-branch-merge = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do branch'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge --no-ff master; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		git merge --no-commit --no-ff develop; \
+	}; f"
+
+	#####################################################################################
+	# Manda um branch para o servidor, mas antes excluir o que ja existe no servidor
+	# Esse comando considera o branch atual
+	#
+	# env-branch-local => Disponibilizar Branch Atual, nao e preciso passar o nome do branch
+	#
+	# Por questoes de seguranca esse comando ira desconsiderar o branch master e develop
+	#####################################################################################
+	env-branch-local= "!f() { \
+		NOME_DO_BRANCH=`git bnome`; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_DO_BRANCH) ]; then \
+			echo 'Branch nao encontrado.'; \
+			exit; \
+		fi; \
+		if [ $NOME_DO_BRANCH = 'master' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch master.'; \
+			exit; \
+		fi; \
+		if [ $NOME_DO_BRANCH = 'develop' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch develop.'; \
+			exit; \
+		fi; \
+		NOME_BRANCH_REMOTO=origin/$NOME_DO_BRANCH; \
+		if [ $(git rev-parse --verify --quiet $NOME_BRANCH_REMOTO) ]; then \
+			git push origin --delete $NOME_DO_BRANCH; \
+		fi; \
+		git push origin $NOME_DO_BRANCH; \
+		echo 'Branch atualizado com sucesso no repositorio.'; \
+	}; f"
+
+	#####################################################################################
+	# Atualiza um branch especifico passando sÃ³ o nome e especificando seu tipo(prefixo)
+	# Essa opcao utiliza apenas o rebase para mesclar as atualizacoes antes de enviar
+	# modificacoes para o servidor
+	#
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git atualizar-branch-rebase -c <NOME_DO_BRANCH>
+	#####################################################################################
+	atualizar-branch-rebase = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do branch'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull --rebase origin master; \
+		git checkout develop; \
+		git rebase master; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		git rebase develop; \
+	}; f"
+
+	#####################################################################################
+	# publica o banch atual para o servidor
+	#
+	# -d => exclui branch local
+	# -D => exclui branch local e remoto
+	#
+	# FORMA DE USO => git publicar-local -d
+	#####################################################################################
+	publicar-atual = "!f() { \
+		NOME_DO_BRANCH=`git bnome`; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_DO_BRANCH) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+		git checkout $NOME_DO_BRANCH; \
+		git rebase develop; \
+		git checkout develop; \
+		git merge --no-ff $NOME_DO_BRANCH; \
+		git checkout master; \
+		git merge --no-ff develop; \
+		git push origin master; \
+		git checkout develop; \
+		git merge master; \
+		if [ $1 ]; then \
+			if [ $1 = '-d' ]; then \
+				git branch -D $NOME_DO_BRANCH; \
+			elif [ $1 = '-D' ]; then \
+				git push origin --delete $NOME_DO_BRANCH; \
+				git branch -D $NOME_DO_BRANCH; \
+			fi; \
+		fi; \
+	}; f"
+
+	#####################################################################################
+	# Comando para bublicar um chamado qualquer
+	#
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git publicar -c <NOME_DO_BRANCH>
+	#
+	# Para deletar o branch remoto alem de subir as atualizacoes, use o comando abaixo:
+	#
+	# FORMA DE USO => git publicar -c <NOME_DO_BRANCH> -d
+	#####################################################################################
+	publicar = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do branch'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		git rebase develop; \
+		git checkout develop; \
+		git merge --no-ff $NOME_BRANCH_LOCAL; \
+		git checkout master; \
+		git merge --no-ff develop; \
+		git push origin master; \
+		git checkout develop; \
+		git merge master; \
+		if [ $3 ]; then \
+			if [ $3 = '-d' ]; then \
+				git push origin --delete $NOME_BRANCH_LOCAL; \
+				git branch -D $NOME_BRANCH_LOCAL; \
+			fi; \
+		fi; \
+	}; f"
+
+	#####################################################################################
+	# Comando para bublicar um chamado qualquer
+	#
+	# -p => branch de projeto
+	# -c => branch de chamado
+	# -b => branch de bugfix
+	# -n => branch normal sem prefixo
+	# FORMA DE USO => git publicar-merge -c <NOME_DO_BRANCH>
+	#
+	# Para deletar o branch remoto alem de subir as atualizacoes, use o comando abaixo:
+	#
+	# FORMA DE USO => git publicar -c <NOME_DO_BRANCH> -d
+	#####################################################################################
+	publicar-merge = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do branch'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git merge master; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		git --no-commit --no-ff merge develop; \
+		git checkout develop; \
+		git merge --no-ff $NOME_BRANCH_LOCAL; \
+		git checkout master; \
+		git merge --no-ff develop; \
+		git push origin master; \
+		git checkout develop; \
+		git merge master; \
+		if [ $3 ]; then \
+			if [ $3 = '-d' ]; then \
+				git push origin --delete $NOME_BRANCH_LOCAL; \
+			fi; \
+		fi; \
+	}; f"
+
+	######################################################
+	# publica modificacoes que estejam no branch develop
+	# FORMA DE USO => git publicar-develop
+	######################################################
+	publicar-develop = "!f() { \
+		git checkout master; \
+		git pull origin master; \
+		git checkout develop; \
+		git rebase master; \
+		git checkout master; \
+		git merge --no-ff develop; \
+		git push origin master; \
+		git checkout develop; \
+	}; f"
+
+	#############################################################################################
+	# Mesca alteracoes entre 2 branchs, sendo um deles:
+	# Remoto e o outro local
+	#
+	# E preciso setar o nome dos dois branch porque o branch
+	# local pode ter nomde diferente do remoto
+	#
+	# FORMA DE USO => git mesclar-com-remoto -p <BRANCH_LOCAL> -r <BRANCH_REMOTO>
+	#############################################################################################
+	mesclar-com-remoto = "!f() { \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			fi; \
+		else \
+			echo 'Especifique o branch local'; \
+			exit; \
+		fi; \
+		if [ $3 ]; then \
+			if [ $3 = '-r' ]; then \
+				NOME_BRANCH_REMOTO=$4; \
+			fi; \
+		else \
+			echo 'Especifique o branch remoto'; \
+			exit; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado'; \
+			exit; \
+		fi; \
+		git checkout $NOME_BRANCH_REMOTO; \
+		git merge $NOME_BRANCH_LOCAL; \
+	}; f"
+
+	#############################################################################################
+	# Baixa um branch remoto sem causar comflito
+	# FORMA DE USO => git baixar-branch -p <BRANCH_LOCAL>
+	#############################################################################################
+	baixar-branch = "!f() { \
+    	if [ ! $2 ]; then \
+			echo 'Informe o nome do Branch.'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-p' ]; then \
+				NOME_BRANCH_LOCAL=projeto/$2; \
+			elif [ $1 = '-c' ]; then \
+				NOME_BRANCH_LOCAL=chamado/$2; \
+			elif [ $1 = '-b' ]; then \
+				NOME_BRANCH_LOCAL=bugfix/$2; \
+			elif [ $1 = '-n' ]; then \
+				NOME_BRANCH_LOCAL=$2; \
+			else \
+				echo 'Especifique o parametro do tipo do branch.'; \
+				exit; \
+			fi; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_LOCAL) ]; then \
+			echo 'Branch nao encontrado no Local.'; \
+			exit; \
+		elif [ $2 = 'master' -o $2 = 'dev' -o $2 = 'develop' ]; then \
+			echo 'Impossivel Atualizar o Branch Master e Develop Por Esta Funcao. \n'; \
+			exit; \
+		fi; \
+		NOME_BRANCH_REMOTO=origin/$NOME_BRANCH_LOCAL; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_BRANCH_REMOTO) ]; then \
+			echo 'O Branch nao existe no Servidor.'; \
+			exit; \
+		fi; \
+		echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \n'; \
+		echo '@ Iniciando Atualizacao do Branch Local com o Branch Remoto. @ \n'; \
+		echo '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ \n'; \
+		git fetch; \
+		git checkout develop; \
+		git branch -D $NOME_BRANCH_LOCAL; \
+		git checkout $NOME_BRANCH_LOCAL; \
+		echo '\n'; \
+		echo '\n'; \
+		echo 'Branch Local Atualizado! \n\n'; \
+	}; f"
+
+	###########################################################
+	# Comando para reverter um commit especifico
+	#
+	# FORMA DE USO => git reverter-commit <HASH_DO_COMMIT>
+	###########################################################
+	reverter-commit = "!f() { \
+		if [ $1 ]; then \
+			HASH_COMMIT=$1; \
+		else \
+			echo 'Especifique o hash do commit'; \
+			exit; \
+		fi; \
+		if [ $HASH_COMMIT ]; then \
+			git revert -- $HASH_COMMIT; \
+		else \
+			echo 'Algo deu errado !'; \
+		fi; \
+	}; f"
+
+	###########################################################
+	# Diferentemente do comando acima, esse comando desfaz
+	# o commit e as alteracoes
+	#
+	# FORMA DE USO => git desfazer <HASH_DO_COMMIT>
+	###########################################################
+	desfazer = "!f() { \
+		if [ $1 ]; then \
+			HASH_COMMIT=$1; \
+		else \
+			echo 'Especifique o hash do commit'; \
+			exit; \
+		fi; \
+		if [ $HASH_COMMIT ]; then \
+			git reset --hard $HASH_COMMIT^; \
+		else \
+			echo 'Algo deu errado !'; \
+		fi; \
+	}; f"
+
+	###########################################################
+	# Comandos para desfazer commits especificos
+	#
+	# FORMA DE USO => git desfazer-stage <HASH_DO_COMMIT>
+	###########################################################
+	desfazer-stage = "!f() { \
+		if [ $1 ]; then \
+			HASH_COMMIT=$1; \
+		else \
+			echo 'Especifique o hash do commit'; \
+			exit; \
+		fi; \
+		if [ $HASH_COMMIT ]; then \
+			git reset --soft $HASH_COMMIT^; \
+		else \
+			echo 'Algo deu errado !'; \
+		fi; \
+	}; f"
+
+	###########################################################
+	# Deleta um branch atual, o branch que voce esta
+	#
+	# FORMA DE USO => git deletar-branch-atual <NOME_DO_BRANCH>
+	###########################################################
+	deletar-branch-atual="!f() { \
+		NOME_DO_BRANCH=`git bnome`; \
+		if [ ! $(git rev-parse --verify --quiet $NOME_DO_BRANCH) ]; then \
+			echo 'Branch nao encontrado.'; \
+			exit; \
+		fi; \
+		if [ $NOME_DO_BRANCH = 'master' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch master.'; \
+			exit; \
+		fi; \
+		if [ $NOME_DO_BRANCH = 'develop' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch develop.'; \
+			exit; \
+		fi; \
+		git checkout develop; \
+		if [ ! $(git rev-parse --verify --quiet origin/$NOME_DO_BRANCH) ]; then \
+			echo 'O branch existe no repositorio remoto.'; \
+			git push origin --delete $NOME_DO_BRANCH; \
+		fi; \
+		git branch -D $NOME_DO_BRANCH; \
+	}; f"
+
+	###########################################################
+	# OBS:
+	# 	Mescla um branch local com um branch remoto, nao precisa
+	# 	colocar o nome do branch, o branch atual é a referencia
+	# 	o comando esta validado para nao funcionar no master, ou
+	# 	no develop
+	#
+	# Exemplo:
+	#    Branch Local: projeto/x === Branch Remoto projeto/x
+	#
+	# FORMA DE USO:
+	#	Mesclar usando o merge => git mesclar-com-remoto
+	#	Mesclar usando o rebase => git mesclar-com-remoto -r
+	#
+	###########################################################
+	mesclar-com-remoto ="!f() { \
+		NOME_DO_BRANCH=`git bnome`; \
+		if [ $NOME_DO_BRANCH = 'master' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch master.'; \
+			exit; \
+		fi; \
+		if [ $NOME_DO_BRANCH = 'develop' ]; then \
+			echo 'Nao e possivel realizar esse comando no branch develop.'; \
+			exit; \
+		fi; \
+		if [ ! $(git rev-parse --verify --quiet origin/$NOME_DO_BRANCH) ]; then \
+			echo 'Branch remoto nao encontrado'; \
+			exit; \
+		fi; \
+    	if [ $1 ]; then \
+			if [ $1 = '-r' ]; then \
+				git pull origin $NOME_DO_BRANCH --rebase; \
+				git push origin $NOME_DO_BRANCH; \
+				exit; \
+			else \
+				echo 'Parametro incorreto.'; \
+				exit; \
+			fi; \
+		fi; \
+		git pull origin $NOME_DO_BRANCH; \
+		git push origin $NOME_DO_BRANCH; \
+	}; f"
